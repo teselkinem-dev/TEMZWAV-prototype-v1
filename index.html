@@ -1,0 +1,965 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>TEMZWAV — Telegram Mini App Prototype</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    :root {
+      --bg: #f2f2f7;
+      --card: #ffffff;
+      --card-secondary: #f9f9fb;
+      --text: #000000;
+      --text-secondary: #6e6e73;
+      --accent: #007aff;
+      --accent-soft: rgba(0, 122, 255, 0.12);
+      --success: #34c759;
+      --warning: #ff9500;
+      --danger: #ff3b30;
+      --border: rgba(60, 60, 67, 0.14);
+      --glass: rgba(255, 255, 255, 0.82);
+      --tg-bubble: #e9f5ff;
+      --shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+    }
+
+    body.dark {
+      --bg: #000000;
+      --card: #1c1c1e;
+      --card-secondary: #2c2c2e;
+      --text: #ffffff;
+      --text-secondary: #98989d;
+      --accent: #0a84ff;
+      --accent-soft: rgba(10, 132, 255, 0.18);
+      --success: #30d158;
+      --warning: #ff9f0a;
+      --danger: #ff453a;
+      --border: rgba(255, 255, 255, 0.14);
+      --glass: rgba(28, 28, 30, 0.82);
+      --tg-bubble: #1b2d42;
+      --shadow: 0 10px 28px rgba(0, 0, 0, 0.45);
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Inter", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      transition: background 0.25s ease, color 0.25s ease;
+    }
+
+    .app-shell {
+      width: 100%;
+      max-width: 430px;
+      min-height: 100vh;
+      background: var(--bg);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      box-shadow: var(--shadow);
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      background: var(--glass);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand-badge {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #007aff, #34c759);
+      display: grid;
+      place-items: center;
+      color: #fff;
+      font-weight: 800;
+      font-size: 15px;
+    }
+
+    .brand-title {
+      font-weight: 700;
+      font-size: 16px;
+      line-height: 1.15;
+    }
+
+    .brand-sub {
+      font-size: 11px;
+      color: var(--text-secondary);
+    }
+
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .xp-pill {
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-weight: 700;
+      font-size: 12px;
+      padding: 6px 10px;
+      border-radius: 999px;
+    }
+
+    .icon-btn {
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--text);
+      width: 34px;
+      height: 34px;
+      border-radius: 999px;
+      display: grid;
+      place-items: center;
+      font-size: 15px;
+      cursor: pointer;
+    }
+
+    .content {
+      flex: 1;
+      padding: 16px 16px 96px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 16px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+    }
+
+    .card-muted {
+      background: var(--card-secondary);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 12px 14px;
+    }
+
+    .tg-bot-card {
+      background: var(--tg-bubble);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 16px;
+    }
+
+    .tg-tag {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      margin-bottom: 8px;
+    }
+
+    h1, h2, h3, p {
+      margin: 0;
+    }
+
+    h2 {
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+    }
+
+    h3 {
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .muted {
+      color: var(--text-secondary);
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    .small {
+      font-size: 12px;
+      color: var(--text-secondary);
+      line-height: 1.35;
+    }
+
+    .option-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .option-btn {
+      width: 100%;
+      text-align: left;
+      background: var(--card);
+      border: 1.5px solid var(--border);
+      border-radius: 16px;
+      padding: 14px;
+      color: var(--text);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      transition: transform 0.12s ease, border-color 0.15s ease, background 0.15s ease;
+    }
+
+    .option-btn:active {
+      transform: scale(0.985);
+    }
+
+    .option-btn.selected {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+    }
+
+    .btn-primary {
+      width: 100%;
+      border: none;
+      border-radius: 14px;
+      padding: 14px 16px;
+      background: var(--accent);
+      color: #ffffff;
+      font-weight: 700;
+      font-size: 15px;
+      cursor: pointer;
+      transition: opacity 0.15s ease, transform 0.12s ease;
+    }
+
+    .btn-primary:active {
+      transform: scale(0.985);
+      opacity: 0.92;
+    }
+
+    .btn-secondary {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 12px 14px;
+      background: var(--card);
+      color: var(--text);
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    .btn-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .btn-chip {
+      border: 1px solid var(--border);
+      background: var(--card-secondary);
+      color: var(--text);
+      border-radius: 12px;
+      padding: 10px 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      text-align: center;
+    }
+
+    .progress-track {
+      height: 8px;
+      width: 100%;
+      border-radius: 999px;
+      background: var(--card-secondary);
+      overflow: hidden;
+      margin-top: 8px;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent), var(--success));
+      border-radius: 999px;
+      transition: width 0.3s ease;
+    }
+
+    .step-item {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 11px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .step-item:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+
+    .status-pill {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 9px;
+      border-radius: 999px;
+      white-space: nowrap;
+    }
+
+    .status-done {
+      background: rgba(52, 199, 89, 0.16);
+      color: var(--success);
+    }
+
+    .status-todo {
+      background: var(--accent-soft);
+      color: var(--accent);
+    }
+
+    .status-moved {
+      background: rgba(255, 149, 0, 0.16);
+      color: var(--warning);
+    }
+
+    .invite-card {
+      background: linear-gradient(145deg, #0b192c, #16324f);
+      color: #ffffff;
+      border-radius: 20px;
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .invite-card .muted {
+      color: rgba(255, 255, 255, 0.78);
+    }
+
+    .slider {
+      width: 100%;
+      accent-color: var(--accent);
+      margin: 10px 0;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 84px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: #1c1c1e;
+      color: #fff;
+      padding: 10px 16px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 600;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease, transform 0.2s ease;
+      z-index: 50;
+      max-width: 90%;
+      text-align: center;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .tabbar {
+      position: fixed;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100%;
+      max-width: 430px;
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      background: var(--glass);
+      border-top: 1px solid var(--border);
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      padding: 8px 6px 12px;
+      z-index: 25;
+    }
+
+    .tab-btn {
+      border: none;
+      background: transparent;
+      color: var(--text-secondary);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      padding: 4px 0;
+    }
+
+    .tab-btn.active {
+      color: var(--accent);
+    }
+
+    .tab-icon {
+      font-size: 18px;
+      line-height: 1;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-badge">TW</div>
+        <div>
+          <div class="brand-title">TEMZWAV</div>
+          <div class="brand-sub" id="headerSub">Telegram Mini App • Демо</div>
+        </div>
+      </div>
+      <div class="top-actions">
+        <div class="xp-pill" id="xpBadge">0 XP</div>
+        <button class="icon-btn" id="themeBtn" title="Тема">🌙</button>
+      </div>
+    </header>
+
+    <main class="content" id="appContent"></main>
+
+    <div class="toast" id="toast"></div>
+
+    <nav class="tabbar">
+      <button class="tab-btn active" data-tab="start" id="tab-start">
+        <span class="tab-icon">🤖</span>
+        <span>Бот и старт</span>
+      </button>
+      <button class="tab-btn" data-tab="today" id="tab-today">
+        <span class="tab-icon">⚡</span>
+        <span>Сегодня</span>
+      </button>
+      <button class="tab-btn" data-tab="buddy" id="tab-buddy">
+        <span class="tab-icon">🤝</span>
+        <span>Напарник</span>
+      </button>
+      <button class="tab-btn" data-tab="pro" id="tab-pro">
+        <span class="tab-icon">🔥</span>
+        <span>Спринт 30д</span>
+      </button>
+    </nav>
+  </div>
+
+  <script>
+    const state = {
+      tab: "start",
+      screen: "bot", // bot | goal | quiz | plan | today | buddy | pro
+      goal: "body",
+      goalTitle: "Тело и Бег",
+      level: "Новичок / после паузы",
+      minutes: "15–20 минут",
+      barrier: "Пропустил пару дней и бросил",
+      xp: 0,
+      streakDays: 0,
+      buddyJoined: false,
+      stakeAmount: 2990,
+      days: [
+        { day: 1, title: "15 мин: разминка + лёгкий бег/ходьба", status: "todo", note: "Сегодня" },
+        { day: 2, title: "15 мин: спокойный темп + фокус на дыхании", status: "todo", note: "День 2" },
+        { day: 3, title: "Восстановление: растяжка и прогулка 10 мин", status: "todo", note: "День 3" },
+        { day: 4, title: "20 мин: интервалы (1 мин шаг / 2 мин бег)", status: "todo", note: "День 4" },
+        { day: 5, title: "Короткий шаг к цели без перегрузки", status: "todo", note: "День 5" },
+        { day: 6, title: "Лёгкая активность + фиксация ощущения", status: "todo", note: "День 6" },
+        { day: 7, title: "Итог недели и переход к 30-дневному спринту", status: "todo", note: "День 7" }
+      ]
+    };
+
+    const GOALS = {
+      body: {
+        title: "Тело и Бег",
+        icon: "🏃‍♂️",
+        desc: "Начать бегать, вернуть тонус и сбросить лишний вес без срывов",
+        steps: [
+          "15 мин: разминка + чередование шага и лёгкого бега",
+          "15 мин: ровный ритм без одышки + стакан воды после",
+          "Анти-стыд день: 10 мин лёгкой прогулки или отдыха",
+          "20 мин: короткие ускорения по самочувствию",
+          "15 мин: движение в комфортном темпе + отметка статуса",
+          "15 мин: закрепление ритма перед финалом недели",
+          "Недельный чек-ин: фиксируем прогресс и переходим в 30 дней"
+        ]
+      },
+      money: {
+        title: "Деньги и Проект",
+        icon: "💰",
+        desc: "Сделать +50–100к к доходу, дожать запуск или закрыть главные задачи",
+        steps: [
+          "15 мин: выписать 1 денежное действие на сегодня и сделать его",
+          "20 мин: 3 прямых касания клиентов / партнёров / продаж",
+          "Анти-стыд день: разбор блоков без самокритики",
+          "20 мин: довести ключевой оффер или шаг запуска до результата",
+          "15 мин: проверка цифр и отправка 2 предложений",
+          "15 мин: закрытие хвостов недели до 12:00",
+          "Недельный чек-ин: считаем результат и ставим цель на 30 дней"
+        ]
+      },
+      discipline: {
+        title: "Железная дисциплина",
+        icon: "⚡️",
+        desc: "Собрать режим, убрать прокрастинацию и держать слово перед собой",
+        steps: [
+          "15 мин: утренний старт без ленты новостей + 1 главная задача",
+          "15 мин: фокус-блок 20 минут с выключенным звуком",
+          "Анти-стыд день: мягкий ритм без чувства вины",
+          "20 мин: выполнить задачу, которую откладывал дольше всего",
+          "15 мин: вечерний чек-лист и подготовка завтрашнего дня",
+          "15 мин: удержать план даже при нехватке времени",
+          "Недельный чек-ин: закрепляем привычку на 30-дневный спринт"
+        ]
+      }
+    };
+
+    const contentEl = document.getElementById("appContent");
+    const xpBadgeEl = document.getElementById("xpBadge");
+    const toastEl = document.getElementById("toast");
+
+    function showToast(msg) {
+      toastEl.textContent = msg;
+      toastEl.classList.add("show");
+      clearTimeout(window.__toastTimer);
+      window.__toastTimer = setTimeout(() => {
+        toastEl.classList.remove("show");
+      }, 2400);
+    }
+
+    function addXp(points, label) {
+      state.xp += points;
+      xpBadgeEl.textContent = `${state.xp} XP`;
+      showToast(`+${points} XP • ${label}`);
+    }
+
+    function applyGoalPlan(goalKey) {
+      state.goal = goalKey;
+      state.goalTitle = GOALS[goalKey].title;
+      const customSteps = GOALS[goalKey].steps;
+      state.days = state.days.map((d, idx) => ({
+        ...d,
+        title: customSteps[idx] || d.title,
+        status: d.status === "done" ? "done" : "todo"
+      }));
+    }
+
+    function setTab(tabName) {
+      state.tab = tabName;
+      document.querySelectorAll(".tab-btn").forEach((btn) => {
+        btn.classList.toggle("active", btn.dataset.tab === tabName);
+      });
+      if (tabName === "start") state.screen = "bot";
+      if (tabName === "today") state.screen = "today";
+      if (tabName === "buddy") state.screen = "buddy";
+      if (tabName === "pro") state.screen = "pro";
+      render();
+    }
+
+    function renderBotScreen() {
+      const g = GOALS[state.goal];
+      return `
+        <div class="tg-bot-card">
+          <div class="tg-tag">Telegram Bot • @temzwav_bot</div>
+          <p style="font-size:15px; line-height:1.5; margin-bottom:10px;">
+            Привет! Это <b>TEMZWAV</b> — система, которая доводит до результата за 30 дней без выгорания и чувства вины.
+          </p>
+          <p style="font-size:14px; line-height:1.45; margin-bottom:14px;">
+            В одиночку сливаются 85% людей. Здесь ты получишь пошаговый план на 7 дней за 45 секунд и сможешь пройти его вместе с другом.
+          </p>
+          <button class="btn-primary" onclick="goScreen('goal')">
+            🚀 Получить план за 1 минуту
+          </button>
+        </div>
+
+        <div class="card">
+          <div class="small" style="font-weight:700; color:var(--accent); margin-bottom:6px;">КАК УСТРОЕНА МЕХАНИКА</div>
+          <div class="step-item">
+            <div>
+              <b>1. Быстрый вход без регистрации</b>
+              <div class="small">Выбираешь цель и ритм — сразу видишь 7-дневный план.</div>
+            </div>
+            <span class="status-pill status-done">45 сек</span>
+          </div>
+          <div class="step-item">
+            <div>
+              <b>2. Напарник бесплатно вдвоём</b>
+              <div class="small">Зовёшь друга — у вас обоих открывается недельный спринт.</div>
+            </div>
+            <span class="status-pill status-todo">Вирус</span>
+          </div>
+          <div class="step-item">
+            <div>
+              <b>3. «Цена слова» и «Десятки»</b>
+              <div class="small">Монетизация за счёт воли и среды с ведущим (2 990 ₽ / 7 900 ₽).</div>
+            </div>
+            <span class="status-pill status-moved">Выручка</span>
+          </div>
+        </div>
+
+        <div class="card-muted">
+          <div class="small"><b>Текущий выбранный трек:</b> ${g.icon} ${g.title} • <b>${state.xp} XP</b></div>
+        </div>
+      `;
+    }
+
+    function renderGoalScreen() {
+      return `
+        <div class="card">
+          <div class="small">ШАГ 1 ИЗ 2 • ВЫБОР ЦЕЛИ</div>
+          <h2 style="margin-top:4px;">Какую цель закроем в ближайшие 30 дней?</h2>
+          <p class="muted" style="margin-top:6px;">Без сложной настройки и долгих анкет. Выбери главный фокус:</p>
+        </div>
+
+        <div class="option-list">
+          ${Object.entries(GOALS).map(([key, item]) => `
+            <button class="option-btn ${state.goal === key ? "selected" : ""}" onclick="selectGoal('${key}')">
+              <div>
+                <div style="font-size:16px; font-weight:700;">${item.icon} ${item.title}</div>
+                <div class="small" style="margin-top:3px;">${item.desc}</div>
+              </div>
+              <span style="font-size:18px;">›</span>
+            </button>
+          `).join("")}
+        </div>
+
+        <button class="btn-secondary" onclick="goScreen('bot')">← Назад в бот</button>
+      `;
+    }
+
+    function renderQuizScreen() {
+      const g = GOALS[state.goal];
+      return `
+        <div class="card">
+          <div class="small">ШАГ 2 ИЗ 2 • КАЛИБРОВКА (${g.icon} ${g.title})</div>
+          <h2 style="margin-top:4px;">Настроим план под твой реальный ритм</h2>
+          <div class="progress-track"><div class="progress-fill" style="width:75%;"></div></div>
+        </div>
+
+        <div class="card">
+          <h3>1. Сколько минут в день готов выделять железно?</h3>
+          <div class="btn-row" style="margin-top:10px;">
+            ${["15–20 минут", "30–45 минут", "1 час"].map((m) => `
+              <button class="btn-chip ${state.minutes === m ? "selected" : ""}" style="${state.minutes === m ? "border-color:var(--accent); color:var(--accent);" : ""}" onclick="setMinutes('${m}')">${m}</button>
+            `).join("")}
+          </div>
+
+          <h3 style="margin-top:16px;">2. Из-за чего обычно бросаешь?</h3>
+          <div class="option-list" style="margin-top:10px;">
+            ${[
+              "Пропустил пару дней и бросил",
+              "Не хватает времени / усталость",
+              "Скучно идти в одиночку"
+            ].map((b) => `
+              <button class="option-btn ${state.barrier === b ? "selected" : ""}" style="padding:11px 12px;" onclick="setBarrier('${b}')">
+                <span style="font-size:14px; font-weight:600;">${b}</span>
+                <span>${state.barrier === b ? "✓" : ""}</span>
+              </button>
+            `).join("")}
+          </div>
+        </div>
+
+        <button class="btn-primary" onclick="goScreen('plan')">Показать мой план на 7 дней →</button>
+      `;
+    }
+
+    function renderPlanScreen() {
+      const g = GOALS[state.goal];
+      return `
+        <div class="card">
+          <div class="tg-tag">План готов • Без регистрации</div>
+          <h2>7 дней: ${g.icon} ${g.title}</h2>
+          <p class="muted" style="margin-top:6px;">
+            Ритм: <b>${state.minutes}</b>. Учли барьер <i>«${state.barrier}»</i> — никаких жёстких штрафов за паузу.
+          </p>
+
+          <div style="margin-top:12px;">
+            ${state.days.map((d) => `
+              <div class="step-item">
+                <div>
+                  <b>День ${d.day}</b>
+                  <div class="small">${d.title}</div>
+                </div>
+                <span class="status-pill ${d.status === "done" ? "status-done" : d.status === "moved" ? "status-moved" : "status-todo"}">
+                  ${d.status === "done" ? "Готово" : d.status === "moved" ? "Перенесено" : "План"}
+                </span>
+              </div>
+            `).join("")}
+          </div>
+        </div>
+
+        <div class="invite-card">
+          <div style="font-size:12px; font-weight:700; letter-spacing:0.5px; opacity:0.85;">ВИРУСНЫЙ КРЮЧОК • ВДВОЁМ БЕСПЛАТНО</div>
+          <h3 style="font-size:18px; color:#fff;">В одиночку сливаются 85%. Пойдём с напарником?</h3>
+          <p class="muted">Отправь приглашение другу: как только он откроет свой план, у вас обоих откроется недельный спринт.</p>
+          <button class="btn-primary" style="background:#34c759; margin-top:4px;" onclick="inviteFriend()">
+            🤝 Пригласить напарника в Telegram
+          </button>
+        </div>
+
+        <button class="btn-secondary" onclick="goScreen('today')">Перейти к экрану «Сегодня» →</button>
+      `;
+    }
+
+    function renderTodayScreen() {
+      const g = GOALS[state.goal];
+      const current = state.days.find((d) => d.status !== "done") || state.days[state.days.length - 1];
+      const doneCount = state.days.filter((d) => d.status === "done").length;
+      const pct = Math.round((doneCount / state.days.length) * 100);
+
+      return `
+        <div class="card">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span class="small"><b>${g.icon} ${g.title}</b> • День ${current.day} из 7</span>
+            <span class="status-pill status-done">${pct}% недели</span>
+          </div>
+          <div class="progress-track"><div class="progress-fill" style="width:${pct}%;"></div></div>
+        </div>
+
+        <div class="card">
+          <div class="tg-tag">Ближайшее действие • 15 секунд на отметку</div>
+          <h2 style="margin-bottom:8px;">${current.title}</h2>
+          <p class="muted" style="margin-bottom:14px;">
+            Сделай шаг сегодня и оцени состояние — система сама подстроит следующие дни.
+          </p>
+
+          <button class="btn-primary" onclick="completeDay(${current.day})">
+            ✅ Выполнено (+50 XP)
+          </button>
+
+          <div class="btn-row" style="margin-top:10px;">
+            <button class="btn-chip" onclick="rescheduleDay(${current.day})">🔄 Перенести</button>
+            <button class="btn-chip" onclick="pausePlan()">⏸ Пауза</button>
+            <button class="btn-chip" onclick="goScreen('pro')">🔥 30 дней</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Как прошла последняя активность?</h3>
+          <p class="small" style="margin-top:4px; margin-bottom:10px;">Если дважды подряд будет «Тяжело», предложим облегчить нагрузку.</p>
+          <div class="btn-row">
+            <button class="btn-chip" onclick="rateEffort('Легко')">😌 Легко</button>
+            <button class="btn-chip" onclick="rateEffort('Нормально')">👍 Нормально</button>
+            <button class="btn-chip" onclick="rateEffort('Тяжело')">😮‍💨 Тяжело</button>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderBuddyScreen() {
+      const g = GOALS[state.goal];
+      return `
+        <div class="invite-card">
+          <div style="font-size:12px; font-weight:700; opacity:0.85;">ПАРНЫЙ РЕЖИМ И ВИРАЛЬНОСТЬ</div>
+          <h2 style="color:#fff;">Карточка вызова для Telegram / Stories</h2>
+          <p class="muted">
+            «Я беру цель <b>${g.title}</b> на 7 дней в TEMZWAV. Кто со мной в параллельном спринте?»
+          </p>
+          <div class="card-muted" style="background:rgba(255,255,255,0.12); border-color:rgba(255,255,255,0.2); color:#fff;">
+            <div class="small" style="color:#fff;">
+              <b>Статус напарника:</b> ${state.buddyJoined ? "Максим принял вызов • День 1/7 ✅" : "Ожидает перехода по ссылке"}
+            </div>
+          </div>
+          <button class="btn-primary" style="background:#34c759;" onclick="inviteFriend()">
+            📤 Поделиться карточкой и ссылкой
+          </button>
+        </div>
+
+        <div class="card">
+          <h3>Почему это разрастается само</h3>
+          <p class="muted" style="margin-top:6px;">
+            Приглашённый друг попадает сразу в свой план (без чужих нагрузок) и получает бесплатный доступ за счёт парного формата.
+          </p>
+          <button class="btn-secondary" style="margin-top:12px;" onclick="simulateBuddyJoin()">
+            🧪 Сымитировать: друг принял приглашение (+100 XP)
+          </button>
+        </div>
+      `;
+    }
+
+    function renderProScreen() {
+      const rewardBonus = state.stakeAmount + 500;
+      return `
+        <div class="card">
+          <div class="tg-tag">Монетизация • После первого результата</div>
+          <h2>Закрепим результат на 30 дней?</h2>
+          <p class="muted" style="margin-top:6px;">
+            Холодный трафик редко покупает сразу, но после первых отмеченных шагов конверсия в платный спринт и «Десятку» растёт.
+          </p>
+        </div>
+
+        <div class="card">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <h3>1. «Цена слова» (30 дней)</h3>
+            <span class="status-pill status-todo">${state.stakeAmount.toLocaleString("ru-RU")} ₽</span>
+          </div>
+          <p class="small" style="margin-top:6px;">
+            Ставишь сумму на свой 30-дневный спринт. Выполняешь ≥80% шагов — получаешь бонус/сертификат на <b>${rewardBonus.toLocaleString("ru-RU")} ₽</b>.
+          </p>
+          <input type="range" min="1990" max="9990" step="1000" value="${state.stakeAmount}" class="slider" oninput="updateStake(this.value)" />
+          <div style="display:flex; justify-content:space-between;" class="small">
+            <span>1 990 ₽</span>
+            <span>Выбрано: <b>${state.stakeAmount.toLocaleString("ru-RU")} ₽</b></span>
+            <span>9 990 ₽</span>
+          </div>
+          <button class="btn-primary" style="margin-top:12px;" onclick="payDemo('Цена слова', ${state.stakeAmount})">
+            Внести ставку ${state.stakeAmount.toLocaleString("ru-RU")} ₽ (Демо)
+          </button>
+        </div>
+
+        <div class="card">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <h3>2. «Десятка» с ведущим (4 недели)</h3>
+            <span class="status-pill status-done">7 900 ₽</span>
+          </div>
+          <p class="small" style="margin-top:6px;">
+            Группа до 10 человек с общей целью, еженедельный созвон с трекером и поддержка в чате. Осталось <b>3 из 10 мест</b>.
+          </p>
+          <div class="progress-track"><div class="progress-fill" style="width:70%;"></div></div>
+          <button class="btn-secondary" style="margin-top:12px;" onclick="payDemo('Десятка с ведущим', 7900)">
+            Занять место в «Десятке» за 7 900 ₽ (Демо)
+          </button>
+        </div>
+      `;
+    }
+
+    function render() {
+      xpBadgeEl.textContent = `${state.xp} XP`;
+      if (state.screen === "bot") contentEl.innerHTML = renderBotScreen();
+      if (state.screen === "goal") contentEl.innerHTML = renderGoalScreen();
+      if (state.screen === "quiz") contentEl.innerHTML = renderQuizScreen();
+      if (state.screen === "plan") contentEl.innerHTML = renderPlanScreen();
+      if (state.screen === "today") contentEl.innerHTML = renderTodayScreen();
+      if (state.screen === "buddy") contentEl.innerHTML = renderBuddyScreen();
+      if (state.screen === "pro") contentEl.innerHTML = renderProScreen();
+    }
+
+    window.goScreen = function (screenName) {
+      state.screen = screenName;
+      if (screenName === "bot") state.tab = "start";
+      if (screenName === "today") state.tab = "today";
+      if (screenName === "buddy") state.tab = "buddy";
+      if (screenName === "pro") state.tab = "pro";
+      document.querySelectorAll(".tab-btn").forEach((btn) => {
+        btn.classList.toggle("active", btn.dataset.tab === state.tab);
+      });
+      render();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    };
+
+    window.selectGoal = function (key) {
+      applyGoalPlan(key);
+      state.screen = "quiz";
+      render();
+    };
+
+    window.setMinutes = function (m) {
+      state.minutes = m;
+      render();
+    };
+
+    window.setBarrier = function (b) {
+      state.barrier = b;
+      render();
+    };
+
+    window.completeDay = function (dayNum) {
+      const item = state.days.find((d) => d.day === dayNum);
+      if (item && item.status !== "done") {
+        item.status = "done";
+        state.streakDays += 1;
+        addXp(50, `День ${dayNum} выполнен`);
+      } else {
+        showToast("Этот день уже засчитан");
+      }
+      render();
+    };
+
+    window.rescheduleDay = function (dayNum) {
+      const item = state.days.find((d) => d.day === dayNum);
+      if (item) {
+        item.status = "moved";
+        showToast(`День ${dayNum} перенесён без потери прогресса`);
+      }
+      render();
+    };
+
+    window.pausePlan = function () {
+      showToast("Пауза включена: серия сохранена, давления нет");
+    };
+
+    window.rateEffort = function (label) {
+      showToast(`Оценка «${label}» сохранена для адаптации плана`);
+    };
+
+    window.inviteFriend = function () {
+      const link = `https://t.me/temzwav_bot?start=buddy_${state.goal}`;
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(link).catch(() => {});
+      }
+      if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.openTelegramLink) {
+        showToast("Ссылка приглашения скопирована для отправки в Telegram");
+      } else {
+        showToast("Ссылка приглашения скопирована в буфер обмена");
+      }
+    };
+
+    window.simulateBuddyJoin = function () {
+      state.buddyJoined = true;
+      addXp(100, "Напарник принял вызов");
+      render();
+    };
+
+    window.updateStake = function (val) {
+      state.stakeAmount = Number(val);
+      render();
+    };
+
+    window.payDemo = function (tarifName, amount) {
+      showToast(`Демо-заявка: «${tarifName}» (${amount.toLocaleString("ru-RU")} ₽)`);
+    };
+
+    document.querySelectorAll(".tab-btn").forEach((btn) => {
+      btn.addEventListener("click", () => setTab(btn.dataset.tab));
+    });
+
+    document.getElementById("themeBtn").addEventListener("click", () => {
+      document.body.classList.toggle("dark");
+      const isDark = document.body.classList.contains("dark");
+      document.getElementById("themeBtn").textContent = isDark ? "☀️" : "🌙";
+    });
+
+    if (window.Telegram && window.Telegram.WebApp) {
+      window.Telegram.WebApp.ready();
+      window.Telegram.WebApp.expand();
+      if (window.Telegram.WebApp.colorScheme === "dark") {
+        document.body.classList.add("dark");
+        document.getElementById("themeBtn").textContent = "☀️";
+      }
+    }
+
+    render();
+  </script>
+</body>
+</html>
